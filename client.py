@@ -5,7 +5,7 @@
 
 import sys
 import socket
-from protocol import ProtoCol
+from protocol import ProtoCol, read_info
 
 def connect(host, port):
     '''connect to (host, port)
