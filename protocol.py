@@ -7,6 +7,7 @@ between server and client.
    size     : 4,    unkown      , unkown
    type     : string, int,        string
 '''
+import sys
 import struct
 
 class ProtoCol(object):
@@ -56,7 +57,52 @@ def handle_exec(sock, msg):
     get output and send response
     '''
     pass
- 
+
+class Redirection(object):
+    ''' redirect stdout and stderr
+    '''
+    def __init__(self):
+        '''init function
+        '''
+        self._out = ''
+        self._err = ''
+        self._stdout = sys.stdout
+        self._stderr = sys.stderr
+        
+    def write(self, out_str):
+        '''write stdout
+        '''
+        self._out += output_stream
+   
+    def write_err(self, err_str):
+        '''write stderr
+        '''
+        self._err += err_str
+    
+    @property    
+    def my_out(self):
+        '''get out message
+        '''
+        return self._out
+        
+    @property
+    def my_err(self):
+        '''get error message
+        '''
+        return self._err
+    
+    def flush(self):
+        '''flush all
+        '''
+        self._out = ''
+        self._err = ''
+        
+    def reset(self):
+        '''reset stdout and stderr
+        '''
+        sys.stdout = self._stdout
+        sys.stderr = self._stderr
+        
 def read_info(sock):
     '''read sock data,
     return (type, data)
