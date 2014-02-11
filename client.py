@@ -29,11 +29,10 @@ def main():
         sys.exit(-1)
         
     sock = connect(arg[0], arg[1])
-    print 'connect to %s:%d' % (arg[0], arg[1])
+    print 'connect to %s:%s' % (arg[0], arg[1])
     
     while True:
         msg = raw_input(">>> ")
-        send_command(sock, msg)
         
         if msg == 'exit':
             ProtoCol.send_close(sock)
