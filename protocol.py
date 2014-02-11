@@ -13,27 +13,34 @@ import struct
 class ProtoCol(object):
     '''define some types and send message
     '''
-    ERROR, INFO, RESP, CLOSE, EXEC = ('erro', 'info', 'resp', 'clos', 'exec')
+    SUCCESS, ERROR, INFO, RESP, CLOSE, EXEC = ('succ', 'erro', 'info', 'resp', 'clos', 'exec')
     @classmethod
     def send_response(sock, msg):
-        send_msg = struct.pack('>4si%ds'%len(msg), ProtoCol.RESP, msg)
+        send_msg = struct.pack('>4si%ds' % len(msg), ProtoCol.RESP, len(msg), msg)
         sock.sendall(send_msg)
 
     @classmethod
     def send_info(sock, msg):
-        send_msg = struct.pack('>4si%ds'%len(msg), ProtoCol.INFO, msg)
+        send_msg = struct.pack('>4si%ds' % len(msg), ProtoCol.INFO, len(msg), msg)
         sock.sendall(send_msg)
 
     @classmethod
     def send_error(sock, msg):
-        send_msg = struct.pack('>4si%ds'%len(msg), ProtoCol.ERROR, msg)
+        send_msg = struct.pack('>4si%ds' % len(msg), ProtoCol.ERROR, len(msg), msg)
         sock.sendall(send_msg)
 
     @classmethod
     def send_close(sock, msg):
-        send_msg = struct.pack('>4si%ds'%len(msg), ProtoCol.CLOSE, msg)
+        send_msg = struct.pack('>4si%ds' % len(msg), ProtoCol.CLOSE, len(msg), msg)
         sock.sendall(send_msg)
-
+   
+    @classmethod
+    def send_success(sock, msg = ''):
+        send_msg = struct.pack('>4si%ds' % len(msg), ProtoCol.SUCCESS, len(msg), msg)
+        if not msg:
+            send_msg = struct.pack('>4si', ProtoCol.SUCCESS, 0)
+        sock.sendall(send_msg)
+    
 
 def handle_conn(sock):
     '''deserialize data,
@@ -59,10 +66,12 @@ def handle_exec(sock, msg):
     redirect = Redirection()
     try:
         exec(msg)
-        if redicect.my_out:
-            ProtoCol.send_response(sock, redicect.my_out)
         if redicect.my_err:
             ProtoCol.send_error(sock, redicect.my_err)
+        elif redicect.my_out:
+            ProtoCol.send_response(sock, redicect.my_out)
+        else:
+            ProtoCol.send_success(sock)
     except Exception, e:
         ProtoCol.send_error(sock, e)
     finally:
