@@ -55,11 +55,11 @@ def main():
             except socket.timeout:
                 print 'time out'
                 connection.close()
-                continue
+                break
             except socket.error, e:
                 print e
                 connection.close()
-                continue
+                break
 
 if __name__ == '__main__':
     main()
