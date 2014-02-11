@@ -75,7 +75,7 @@ def handle_exec(sock, msg):
     stderr = RedirStdIO(sys.stderr)
     sys.stderr = stderr
     try:
-        exec(msg)
+        exec(msg, globals())
         if stderr.buff:
             ProtoCol.send_error(sock, stderr.buff)
         elif stdout.buff:
@@ -83,9 +83,11 @@ def handle_exec(sock, msg):
         else:
             ProtoCol.send_success(sock)
     except Exception, e:
-        ProtoCol.send_error(sock, e)
+        # should make sure no exception will throw here
+        ProtoCol.send_error(sock, str(e))
     finally:
-        
+        stdout.flush()
+        stderr.flush()
         stdout.reset(sys.stdout)
         stderr.reset(sys.stderr)
 
@@ -101,7 +103,7 @@ class RedirStdIO(object):
     def write(self, out_str):
         '''write stdout
         '''
-        self._buff += output_stream
+        self._buff += out_str
    
     @property    
     def buff(self):
@@ -109,7 +111,6 @@ class RedirStdIO(object):
         '''
         return self._buff
         
-    
     def flush(self):
         '''flush all
         '''
@@ -124,7 +125,6 @@ def read_info(sock):
     '''read sock data,
     return (type, data)
     '''
-    
     # deserialize data head
     head_len = 8
     head_raw = sock.recv(head_len)
