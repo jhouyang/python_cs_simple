@@ -3,6 +3,7 @@
 '''This is the client file
 '''
 
+import sys
 import socket
 from protocol import ProtoCol
 
@@ -11,7 +12,7 @@ def connect(host, port):
     '''
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
-      sock.connect((host, port))
+      sock.connect((host, int(port)))
     except socket.error, e:
       print e
       sys.exit(-1)
@@ -28,7 +29,7 @@ def main():
         sys.exit(-1)
         
     sock = connect(arg[0], arg[1])
-    print 'connect to %s:%d' % (host, port)
+    print 'connect to %s:%d' % (arg[0], arg[1])
     
     while True:
         msg = raw_input(">>> ")
@@ -40,6 +41,7 @@ def main():
             ProtoCol.send_exec(sock, msg)
         
         msg_type, msg_str = read_info(sock)
+        print msg_type, msg_str
     
 if __name__ == '__main__':
     main()
