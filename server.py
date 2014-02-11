@@ -47,6 +47,7 @@ def main():
 
     while True:
         connection, address = sock.accept()
+        print "new connection:", address
         while True:
             try:
                 connection.settimeout(60) 
