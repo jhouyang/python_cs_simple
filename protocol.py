@@ -14,34 +14,34 @@ class ProtoCol(object):
     '''define some types and send message
     '''
     SUCCESS, ERROR, INFO, RESP, CLOSE, EXEC = ('succ', 'erro', 'info', 'resp', 'clos', 'exec')
-    @classmethod
+    @staticmethod
     def send_response(sock, msg):
         send_msg = struct.pack('>4si%ds' % len(msg), ProtoCol.RESP, len(msg), msg)
         sock.sendall(send_msg)
 
-    @classmethod
+    @staticmethod
     def send_info(sock, msg):
         send_msg = struct.pack('>4si%ds' % len(msg), ProtoCol.INFO, len(msg), msg)
         sock.sendall(send_msg)
 
-    @classmethod
+    @staticmethod
     def send_error(sock, msg):
         send_msg = struct.pack('>4si%ds' % len(msg), ProtoCol.ERROR, len(msg), msg)
         sock.sendall(send_msg)
         
-    @classmethod
+    @staticmethod
     def send_exec(sock, msg):
         send_msg = struct.pack('>4si%ds' % len(msg), ProtoCol.EXEC, len(msg), msg)
         sock.sendall(send_msg)
 
-    @classmethod
+    @staticmethod
     def send_close(sock, msg = ''):
         send_msg = struct.pack('>4si%ds' % len(msg), ProtoCol.CLOSE, len(msg), msg)
         if not msg:
             send_msg = struct.pack('>4si', ProtoCol.SUCCESS, 0)
         sock.sendall(send_msg)
    
-    @classmethod
+    @staticmethod
     def send_success(sock, msg = ''):
         send_msg = struct.pack('>4si%ds' % len(msg), ProtoCol.SUCCESS, len(msg), msg)
         if not msg:
@@ -70,64 +70,55 @@ def handle_exec(sock, msg):
     '''handle exec message, need to redirect std IO,
     get output and send response
     '''
-    redirect = Redirection()
+    stdout = RedirStdIO(sys.stdout)
+    sys.stdout = stdout
+    stderr = RedirStdIO(sys.stderr)
+    sys.stderr = stderr
     try:
         exec(msg)
-        if redicect.my_err:
-            ProtoCol.send_error(sock, redicect.my_err)
-        elif redicect.my_out:
-            ProtoCol.send_response(sock, redicect.my_out)
+        if stderr.buff:
+            ProtoCol.send_error(sock, stderr.buff)
+        elif stdout.buff:
+            ProtoCol.send_response(sock, stdout.buff)
         else:
             ProtoCol.send_success(sock)
     except Exception, e:
         ProtoCol.send_error(sock, e)
     finally:
-        redirect.reset()
+        
+        stdout.reset(sys.stdout)
+        stderr.reset(sys.stderr)
 
-class Redirection(object):
+class RedirStdIO(object):
     ''' redirect stdout and stderr
     '''
-    def __init__(self):
+    def __init__(self, std_io):
         '''init function
         '''
-        self._out = ''
-        self._err = ''
-        self._stdout = sys.stdout
-        self._stderr = sys.stderr
+        self._buff = ''
+        self._console = std_io
         
     def write(self, out_str):
         '''write stdout
         '''
-        self._out += output_stream
+        self._buff += output_stream
    
-    def write_err(self, err_str):
-        '''write stderr
-        '''
-        self._err += err_str
-    
     @property    
-    def my_out(self):
+    def buff(self):
         '''get out message
         '''
-        return self._out
+        return self._buff
         
-    @property
-    def my_err(self):
-        '''get error message
-        '''
-        return self._err
     
     def flush(self):
         '''flush all
         '''
-        self._out = ''
-        self._err = ''
+        self._buff = ''
         
-    def reset(self):
+    def reset(self, std_io):
         '''reset stdout and stderr
         '''
-        sys.stdout = self._stdout
-        sys.stderr = self._stderr
+        std_io = self._console
         
 def read_info(sock):
     '''read sock data,
