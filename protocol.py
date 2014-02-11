@@ -143,5 +143,5 @@ def read_info(sock):
     except struct.error:
         return None, None
    
-    return msg_type, msg_str
+    return msg_type, msg_str[0]
     
