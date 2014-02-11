@@ -136,6 +136,8 @@ def read_info(sock):
     msg_type = msg_str[0]
     msg_len = msg_str[1]
     
+    if msg_len == 0:
+       return msg_type, ''
     # deserialize data
     msg_raw = sock.recv(msg_len)
     try:
