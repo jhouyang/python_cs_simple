@@ -28,10 +28,17 @@ class ProtoCol(object):
     def send_error(sock, msg):
         send_msg = struct.pack('>4si%ds' % len(msg), ProtoCol.ERROR, len(msg), msg)
         sock.sendall(send_msg)
+        
+    @classmethod
+    def send_exec(sock, msg):
+        send_msg = struct.pack('>4si%ds' % len(msg), ProtoCol.EXEC, len(msg), msg)
+        sock.sendall(send_msg)
 
     @classmethod
-    def send_close(sock, msg):
+    def send_close(sock, msg = ''):
         send_msg = struct.pack('>4si%ds' % len(msg), ProtoCol.CLOSE, len(msg), msg)
+        if not msg:
+            send_msg = struct.pack('>4si', ProtoCol.SUCCESS, 0)
         sock.sendall(send_msg)
    
     @classmethod
