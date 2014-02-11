@@ -4,6 +4,7 @@
 '''
 
 import socket
+from protocol import ProtoCol
 
 def connect(host, port):
     '''connect to (host, port)
@@ -17,7 +18,7 @@ def connect(host, port):
       
     return sock
   
-  
+
 def main():
     '''main function of client
     '''
@@ -27,6 +28,18 @@ def main():
         sys.exit(-1)
         
     sock = connect(arg[0], arg[1])
+    print 'connect to %s:%d' % (host, port)
+    
+    while True:
+        msg = raw_input(">>> ")
+        send_command(sock, msg)
+        
+        if msg == 'exit':
+            ProtoCol.send_close(sock)
+        else:
+            ProtoCol.send_exec(sock, msg)
+        
+        msg_type, msg_str = read_info(sock)
     
 if __name__ == '__main__':
     main()
