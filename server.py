@@ -2,6 +2,7 @@
 
 import sys
 import socket
+from protocol import handle_conn
 
 def try_port(sock, start_port, host = ''):
     try:
@@ -49,11 +50,8 @@ def main():
         while True:
             try:
                 connection.settimeout(60) 
-                buf = connection.recv(1024)
+                handle_conn(connection)
 
-                if buf:
-                    print buf
-                    exec(buf)
             except socket.timeout:
                 print 'time out'
                 connection.close()
