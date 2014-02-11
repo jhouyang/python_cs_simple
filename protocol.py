@@ -40,23 +40,33 @@ def handle_conn(sock):
     return tuple of type, string data
     '''
     while True:
-       msg_type, msg = read_info(sock)
-       if not msg_type:
-          ProtoCol.send_error(sock, 'invalid input.')
-       elif msg_type == ProtoCol.CLOSE:
-          sock.close()
-          return False
-       elif msg_type == ProtoCol.EXEC:
-          handle_exec(sock, msg)
-       else: #TODO: other type
-             continue
+        msg_type, msg = read_info(sock)
+        if not msg_type:
+            ProtoCol.send_error(sock, 'invalid input.')
+        elif msg_type == ProtoCol.CLOSE:
+            sock.close()
+            return False
+        elif msg_type == ProtoCol.EXEC:
+            handle_exec(sock, msg)
+        else: #TODO: other type
+            continue
           
 
 def handle_exec(sock, msg):
     '''handle exec message, need to redirect std IO,
     get output and send response
     '''
-    pass
+    redirect = Redirection()
+    try:
+        exec(msg)
+        if redicect.my_out:
+            ProtoCol.send_response(sock, redicect.my_out)
+        if redicect.my_err:
+            ProtoCol.send_error(sock, redicect.my_err)
+    except Exception, e:
+        ProtoCol.send_error(sock, e)
+    finally:
+        redirect.reset()
 
 class Redirection(object):
     ''' redirect stdout and stderr
